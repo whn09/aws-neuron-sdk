@@ -28,15 +28,15 @@ CFG Parallelism and Context Parallelism are **mutually exclusive** — both requ
 
 | Mode | True CFG | Throughput (it/s) | 25-step Latency (s) |
 |------|----------|-------------------|----------------------|
-| No True CFG (`true_cfg_scale=1.0`) | No | ~5.8 | ~4.3 |
+| No True CFG (`true_cfg_scale=1.0`) | No | 5.85 | 4.65 |
 | Baseline (Context Parallel, serial True CFG) | Yes (`true_cfg_scale=2.0`) | 2.93 | 8.90 |
 | **CFG Parallelism** | Yes (`true_cfg_scale=2.0`) | **3.69** | **7.15** |
 
 ## Key Takeaways
 
-- Enabling True CFG without parallelism roughly **doubles** the per-step latency (from ~4.3s to 8.90s) due to two sequential transformer forward passes.
+- Enabling True CFG without parallelism roughly **doubles** the per-step latency (from 4.65s to 8.90s) due to two sequential transformer forward passes.
 - **CFG Parallelism recovers ~20% of that overhead** (8.90s → 7.15s) by distributing the negative/positive prompt inference across 2 data-parallel ranks in a single batched forward pass.
-- Compared to no True CFG (~4.3s), CFG Parallelism adds only ~66% overhead while providing the full quality benefits of classifier-free guidance.
+- Compared to no True CFG (4.65s), CFG Parallelism adds only ~54% overhead while providing the full quality benefits of classifier-free guidance.
 
 ## Scripts
 
