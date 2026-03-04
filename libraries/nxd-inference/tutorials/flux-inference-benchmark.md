@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes the benchmark results for running [Black Forest Labs Flux.1-Dev](https://huggingface.co/black-forest-labs/FLUX.1-dev) image generation on a **trn2.48xlarge** instance using NeuronX Distributed (NxD) Inference. We compare the baseline (Context Parallelism without True CFG) against the new **CFG Parallelism** mode.
+This document summarizes the benchmark results for running [Black Forest Labs Flux.1-Dev](https://huggingface.co/black-forest-labs/FLUX.1-dev) image generation on a **trn2.48xlarge** instance using NeuronX Distributed (NxD) Inference. We compare the baseline (Context Parallelism with serial True CFG) against the new **CFG Parallelism** mode.
 
 ## What is CFG Parallelism?
 
@@ -28,14 +28,15 @@ CFG Parallelism and Context Parallelism are **mutually exclusive** — both requ
 
 | Mode | True CFG | Throughput (it/s) | 25-step Latency (s) |
 |------|----------|-------------------|----------------------|
-| Baseline (Context Parallel, no True CFG) | No | 2.93 | 8.90 |
+| No True CFG (`true_cfg_scale=1.0`) | No | ~5.8 | ~4.3 |
+| Baseline (Context Parallel, serial True CFG) | Yes (`true_cfg_scale=2.0`) | 2.93 | 8.90 |
 | **CFG Parallelism** | Yes (`true_cfg_scale=2.0`) | **3.69** | **7.15** |
 
 ## Key Takeaways
 
-- **CFG Parallelism achieves ~20% speedup** over the baseline, even though it performs True CFG (dual-prompt inference) which the baseline does not.
-- The parallelization of negative/positive prompt inference across data-parallel ranks more than compensates for the additional CFG computation.
-- Without CFG Parallelism, enabling True CFG would roughly double the per-step latency (two sequential transformer passes). CFG Parallelism eliminates this overhead.
+- Enabling True CFG without parallelism roughly **doubles** the per-step latency (from ~4.3s to 8.90s) due to two sequential transformer forward passes.
+- **CFG Parallelism recovers ~20% of that overhead** (8.90s → 7.15s) by distributing the negative/positive prompt inference across 2 data-parallel ranks in a single batched forward pass.
+- Compared to no True CFG (~4.3s), CFG Parallelism adds only ~66% overhead while providing the full quality benefits of classifier-free guidance.
 
 ## Scripts
 
